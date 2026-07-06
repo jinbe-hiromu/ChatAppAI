@@ -1,4 +1,4 @@
-namespace CharAppAI
+namespace ChatAppAI
 {
     internal static class Program
     {

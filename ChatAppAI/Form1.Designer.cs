@@ -1,4 +1,4 @@
-﻿namespace CharAppAI
+﻿namespace ChatAppAI
 {
     partial class Form1
     {
