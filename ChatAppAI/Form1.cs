@@ -8,7 +8,7 @@ namespace ChatAppAI
         // ローカルで起動している Ollama の gemma3:4b に接続するチャットクライアント。
         // OllamaApiClient は Microsoft.Extensions.AI の IChatClient を実装している。
         private readonly IChatClient _chatClient =
-            new OllamaApiClient(new Uri("http://localhost:11434"), "gemma3:4b");
+            new OllamaApiClient(new Uri("http://127.0.0.1:11434"), "gemma3:4b");
 
         public Form1()
         {
