@@ -29,6 +29,8 @@ namespace ChatAppAI
         private void InitializeComponent()
         {
             components = new System.ComponentModel.Container();
+            lblModel = new Label();
+            cmbModel = new ComboBox();
             lblSendMessage = new Label();
             txbSendMessage = new TextBox();
             btnSend = new Button();
@@ -36,32 +38,51 @@ namespace ChatAppAI
             txbReceiveMessage = new TextBox();
             SuspendLayout();
             //
+            // lblModel
+            //
+            lblModel.AutoSize = true;
+            lblModel.Location = new Point(12, 9);
+            lblModel.Name = "lblModel";
+            lblModel.Size = new Size(40, 15);
+            lblModel.TabIndex = 0;
+            lblModel.Text = "モデル";
+            //
+            // cmbModel
+            //
+            cmbModel.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            cmbModel.DropDownStyle = ComboBoxStyle.DropDownList;
+            cmbModel.Location = new Point(12, 27);
+            cmbModel.Name = "cmbModel";
+            cmbModel.Size = new Size(776, 23);
+            cmbModel.TabIndex = 1;
+            cmbModel.SelectedIndexChanged += cmbModel_SelectedIndexChanged;
+            //
             // lblSendMessage
             //
             lblSendMessage.AutoSize = true;
-            lblSendMessage.Location = new Point(12, 9);
+            lblSendMessage.Location = new Point(12, 62);
             lblSendMessage.Name = "lblSendMessage";
             lblSendMessage.Size = new Size(76, 15);
-            lblSendMessage.TabIndex = 0;
+            lblSendMessage.TabIndex = 2;
             lblSendMessage.Text = "送信メッセージ";
             //
             // txbSendMessage
             //
             txbSendMessage.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
-            txbSendMessage.Location = new Point(12, 27);
+            txbSendMessage.Location = new Point(12, 80);
             txbSendMessage.Multiline = true;
             txbSendMessage.Name = "txbSendMessage";
             txbSendMessage.ScrollBars = ScrollBars.Vertical;
-            txbSendMessage.Size = new Size(776, 120);
-            txbSendMessage.TabIndex = 1;
+            txbSendMessage.Size = new Size(776, 100);
+            txbSendMessage.TabIndex = 3;
             //
             // btnSend
             //
             btnSend.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            btnSend.Location = new Point(668, 153);
+            btnSend.Location = new Point(668, 186);
             btnSend.Name = "btnSend";
             btnSend.Size = new Size(120, 35);
-            btnSend.TabIndex = 2;
+            btnSend.TabIndex = 4;
             btnSend.Text = "送信";
             btnSend.UseVisualStyleBackColor = true;
             btnSend.Click += btnSend_Click;
@@ -69,22 +90,22 @@ namespace ChatAppAI
             // lblReceiveMessage
             //
             lblReceiveMessage.AutoSize = true;
-            lblReceiveMessage.Location = new Point(12, 200);
+            lblReceiveMessage.Location = new Point(12, 233);
             lblReceiveMessage.Name = "lblReceiveMessage";
             lblReceiveMessage.Size = new Size(76, 15);
-            lblReceiveMessage.TabIndex = 3;
+            lblReceiveMessage.TabIndex = 5;
             lblReceiveMessage.Text = "受信メッセージ";
             //
             // txbReceiveMessage
             //
             txbReceiveMessage.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            txbReceiveMessage.Location = new Point(12, 218);
+            txbReceiveMessage.Location = new Point(12, 251);
             txbReceiveMessage.Multiline = true;
             txbReceiveMessage.Name = "txbReceiveMessage";
             txbReceiveMessage.ReadOnly = true;
             txbReceiveMessage.ScrollBars = ScrollBars.Vertical;
-            txbReceiveMessage.Size = new Size(776, 220);
-            txbReceiveMessage.TabIndex = 4;
+            txbReceiveMessage.Size = new Size(776, 187);
+            txbReceiveMessage.TabIndex = 6;
             //
             // Form1
             //
@@ -95,14 +116,19 @@ namespace ChatAppAI
             Controls.Add(btnSend);
             Controls.Add(txbSendMessage);
             Controls.Add(lblSendMessage);
+            Controls.Add(cmbModel);
+            Controls.Add(lblModel);
             Name = "Form1";
-            Text = "ChatAppAI - gemma3:4b";
+            Text = "ChatAppAI";
+            Load += Form1_Load;
             ResumeLayout(false);
             PerformLayout();
         }
 
         #endregion
 
+        private Label lblModel;
+        private ComboBox cmbModel;
         private Label lblSendMessage;
         private TextBox txbSendMessage;
         private Button btnSend;
