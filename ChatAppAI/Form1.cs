@@ -1,24 +1,42 @@
 using Microsoft.Extensions.AI;
+using ModelContextProtocol.Client;
 using OllamaSharp;
+using System.Text.Json;
+
 
 namespace ChatAppAI
 {
     public partial class Form1 : Form
     {
         // ローカルで起動している Ollama サーバーに接続するチャットクライアント。
-        // OllamaApiClient は Microsoft.Extensions.AI の IChatClient を実装している。
-        // 使用するモデルは起動時に取得した一覧から cmbModel で選択する。
-        private readonly OllamaApiClient _chatClient =
-            new(new Uri("http://127.0.0.1:11434"));
+        // IChatClient インターフェイスを使用して、抽象化された方法でチャット機能を利用する。
+        private IChatClient _chatClient;
+
+        // Ollama API クライアントのインスタンス（モデル一覧取得用）
+        private readonly OllamaApiClient _ollamaClient;
+
+        // 選択中のモデル名を保持する。
+        private string? _selectedModel;
+
+        // MCP クライアント（ツール呼び出し用）
+        private McpClient? _mcpClient;
+        private IList<McpClientTool> _tools;
+
+        // MCP サーバから取得したツールのリスト
 
         public Form1()
         {
             InitializeComponent();
+
+            // OllamaApiClient を作成し、IChatClient として使用する。
+            _ollamaClient = new OllamaApiClient(new Uri("http://127.0.0.1:11434"));
+            _chatClient = _ollamaClient;
         }
 
         private async void Form1_Load(object sender, EventArgs e)
         {
             await LoadModelsAsync();
+            await LoadListToolsAsync();
         }
 
         // Ollama にインストール済みのローカルモデル一覧を取得し、ドロップダウンに反映する。
@@ -26,7 +44,7 @@ namespace ChatAppAI
         {
             try
             {
-                var models = await _chatClient.ListLocalModelsAsync();
+                var models = await _ollamaClient.ListLocalModelsAsync();
                 var names = models
                     .Select(m => m.Name)
                     .OrderBy(name => name)
@@ -37,7 +55,7 @@ namespace ChatAppAI
 
                 if (cmbModel.Items.Count > 0)
                 {
-                    // 先頭のモデルを既定として選択する（SelectedIndexChanged で SelectedModel が設定される）。
+                    // 先頭のモデルを既定として選択する（SelectedIndexChanged で _selectedModel が設定される）。
                     cmbModel.SelectedIndex = 0;
                 }
                 else
@@ -52,12 +70,39 @@ namespace ChatAppAI
             }
         }
 
-        // ドロップダウンで選択されたモデルをクライアントに反映する。
+        private async Task LoadListToolsAsync()
+        {
+            try
+            {
+                var transport = new StdioClientTransport(new()
+                {
+                    Name = "remoteengine-demo",
+                    Command = "node",
+                    Arguments =
+                    [
+                        // ビルド出力にコピーされたMCPフォルダ内のファイルを参照
+                        Path.Combine("MCP", "src", "server.mjs")
+                    ]
+                });
+
+                _mcpClient = await McpClient.CreateAsync(transport);
+
+                _tools = await _mcpClient.ListToolsAsync();
+
+                _chatClient = new ChatClientBuilder(_ollamaClient).UseFunctionInvocation().Build();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"MCP ツールの読み込みに失敗しました: {ex.Message}");
+            }
+        }
+
+        // ドロップダウンで選択されたモデルを _selectedModel フィールドに保持する。
         private void cmbModel_SelectedIndexChanged(object sender, EventArgs e)
         {
             if (cmbModel.SelectedItem is string model)
             {
-                _chatClient.SelectedModel = model;
+                _selectedModel = model;
                 Text = $"ChatAppAI - {model}";
             }
         }
@@ -71,7 +116,7 @@ namespace ChatAppAI
             }
 
             // モデルが未選択のまま送信されないようにする。
-            if (string.IsNullOrEmpty(_chatClient.SelectedModel))
+            if (string.IsNullOrEmpty(_selectedModel))
             {
                 txbReceiveMessage.Text = "モデルを選択してください。";
                 return;
@@ -83,8 +128,15 @@ namespace ChatAppAI
 
             try
             {
-                // txbSendMessage の内容を選択中のモデルに送信し、応答をストリーミングで受信する。
-                await foreach (var update in _chatClient.GetStreamingResponseAsync(message))
+                // ChatOptions を使用してモデル ID を指定する。
+                var options = new ChatOptions
+                {
+                    Tools = [.. _tools],
+                    ModelId = _selectedModel
+                };
+
+                // IChatClient の GetStreamingResponseAsync を使用して、メッセージを送信し応答をストリーミングで受信する。
+                await foreach (var update in _chatClient.GetStreamingResponseAsync(message, options))
                 {
                     // 届いた断片を都度 txbReceiveMessage に追記して表示する。
                     txbReceiveMessage.AppendText(update.Text);
