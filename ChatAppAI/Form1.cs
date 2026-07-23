@@ -1,7 +1,6 @@
 using Microsoft.Extensions.AI;
 using ModelContextProtocol.Client;
 using OllamaSharp;
-using System.Text.Json;
 
 
 namespace ChatAppAI
@@ -74,15 +73,9 @@ namespace ChatAppAI
         {
             try
             {
-                var transport = new StdioClientTransport(new()
+                var transport = new HttpClientTransport(new()
                 {
-                    Name = "remoteengine-demo",
-                    Command = "node",
-                    Arguments =
-                    [
-                        // ビルド出力にコピーされたMCPフォルダ内のファイルを参照
-                        Path.Combine("MCP", "src", "server.mjs")
-                    ]
+                    Endpoint = new Uri("http://127.0.0.1:5050/mcp")
                 });
 
                 _mcpClient = await McpClient.CreateAsync(transport);
